@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>飞机躲避炮弹小游戏</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, #1f2937 0, #020617 55%, #000 100%);
+      color: #e5e7eb;
+    }
+
+    .game-shell {
+      width: min(960px, 100vw - 32px);
+      background: rgba(15, 23, 42, 0.95);
+      border-radius: 18px;
+      box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.7),
+        0 0 0 1px rgba(148, 163, 184, 0.15);
+      padding: 18px 18px 20px;
+      backdrop-filter: blur(22px);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+
+    .title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .title-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      background: conic-gradient(from 220deg, #38bdf8, #a855f7, #f97316, #22c55e, #38bdf8);
+      padding: 2px;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
+    }
+
+    .title-icon-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      background: radial-gradient(circle at 30% 20%, #fff 0, #1d2432 40%, #020617 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #e5e7eb;
+      font-size: 16px;
+      transform: translateY(-0.5px);
+    }
+
+    .title-text-main {
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+
+    .title-text-sub {
+      font-size: 11px;
+      color: #9ca3af;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .badge-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge {
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(15, 118, 110, 0.16);
+      color: #6ee7b7;
+      border: 1px solid rgba(45, 212, 191, 0.4);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 20%, #bbf7d0 0, #22c55e 35%, #15803d 100%);
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.8);
+    }
+
+    .badge-keys {
+      background: rgba(30, 64, 175, 0.3);
+      color: #bfdbfe;
+      border-color: rgba(129, 140, 248, 0.6);
+    }
+
+    .badge-keycaps {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .keycap {
+      border-radius: 4px;
+      border: 1px solid rgba(191, 219, 254, 0.7);
+      padding: 1px 4px;
+      font-size: 10px;
+      background: radial-gradient(circle at 20% 0%, rgba(248, 250, 252, 0.95), rgba(148, 163, 184, 0.15));
+      color: #1f2937;
+    }
+
+    .game-area {
+      position: relative;
+      border-radius: 14px;
+      overflow: hidden;
+      background: radial-gradient(circle at top, #020617 0, #020617 45%, #000 100%);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      box-shadow:
+        inset 0 0 40px rgba(15, 23, 42, 0.9),
+        0 18px 40px rgba(15, 23, 42, 0.9);
+    }
+
+    .top-bar {
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    .score-box {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 6px;
+      background: linear-gradient(to right, rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.6));
+      border-radius: 999px;
+      padding: 6px 11px;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 0.9),
+        0 0 18px rgba(6, 182, 212, 0.35);
+    }
+
+    .score-label {
+      font-size: 11px;
+      color: #9ca3af;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .score-value {
+      font-size: 17px;
+      font-weight: 600;
+      color: #e5e7eb;
+      min-width: 40px;
+      text-align: right;
+    }
+
+    .score-shadow {
+      position: absolute;
+      inset: 26px auto auto 16px;
+      font-size: 42px;
+      font-weight: 700;
+      color: rgba(15, 23, 42, 0.8);
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .right-hints {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      pointer-events: auto;
+    }
+
+    .hint-text {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .btn-ghost {
+      pointer-events: auto;
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: radial-gradient(circle at 0% 0%, rgba(51, 65, 85, 0.85), rgba(15, 23, 42, 0.95));
+      color: #e5e7eb;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: 0.12s ease transform, 0.12s ease box-shadow, 0.12s ease background;
+    }
+
+    .btn-ghost:hover {
+      transform: translateY(-1px);
+      box-shadow:
+        0 9px 20px rgba(15, 23, 42, 0.9),
+        0 0 12px rgba(96, 165, 250, 0.65);
+      background: radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.95), rgba(15, 23, 42, 1));
+    }
+
+    .btn-ghost:active {
+      transform: translateY(0);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.9);
+    }
+
+    .btn-ghost span {
+      font-size: 13px;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(59, 130, 246, 0.18), transparent 55%),
+        radial-gradient(circle at 70% 0%, rgba(236, 72, 153, 0.16), transparent 55%),
+        radial-gradient(circle at 0% 80%, rgba(34, 197, 94, 0.22), transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(6, 182, 212, 0.16), transparent 55%),
+        radial-gradient(circle at 50% 50%, #020617 0, #020617 55%, #000 100%);
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .overlay-inner {
+      pointer-events: auto;
+      text-align: center;
+      padding: 18px 22px 20px;
+      border-radius: 18px;
+      max-width: min(380px, 100% - 32px);
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.96));
+      box-shadow:
+        0 22px 60px rgba(0, 0, 0, 0.9),
+        0 0 0 1px rgba(148, 163, 184, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.8);
+      transform-origin: center;
+      transform: translateY(8px) scale(0.97);
+      opacity: 0;
+      transition: 0.18s ease opacity, 0.18s ease transform;
+    }
+
+    .overlay.visible .overlay-inner {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .overlay-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .overlay-sub {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 14px;
+    }
+
+    .overlay-score {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 6px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.24), rgba(15, 23, 42, 1));
+      border: 1px solid rgba(56, 189, 248, 0.7);
+      margin-bottom: 14px;
+      box-shadow:
+        0 0 18px rgba(56, 189, 248, 0.8),
+        0 0 0 1px rgba(15, 23, 42, 1);
+    }
+
+    .overlay-score-label {
+      font-size: 11px;
+      color: #bfdbfe;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .overlay-score-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: #e5e7eb;
+      min-width: 56px;
+      text-align: right;
+    }
+
+    .overlay-tips {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
+
+    .overlay-btn-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      font-size: 13px;
+      padding: 7px 18px;
+      border-radius: 999px;
+      border: none;
+      color: #0b1120;
+      background: linear-gradient(135deg, #38bdf8, #22c55e);
+      cursor: pointer;
+      font-weight: 600;
+      box-shadow:
+        0 14px 30px rgba(34, 197, 94, 0.45),
+        0 0 0 1px rgba(15, 23, 42, 0.85);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.12s ease transform, 0.12s ease box-shadow, 0.12s ease filter;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.07);
+      box-shadow:
+        0 18px 36px rgba(34, 197, 94, 0.6),
+        0 0 0 1px rgba(15, 23, 42, 0.95);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+      box-shadow:
+        0 10px 22px rgba(34, 197, 94, 0.5),
+        0 0 0 1px rgba(15, 23, 42, 0.95);
+    }
+
+    .btn-primary-sub {
+      font-size: 11px;
+      color: #e5e7eb;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px dashed rgba(148, 163, 184, 0.7);
+      background: radial-gradient(circle at 0 0, rgba(51, 65, 85, 0.95), rgba(15, 23, 42, 1));
+      cursor: default;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .footer span strong {
+      color: #e5e7eb;
+    }
+
+    @media (max-width: 720px) {
+      .game-shell {
+        padding: 14px 12px 16px;
+        border-radius: 16px;
+      }
+      .title-text-main {
+        font-size: 15px;
+      }
+      .score-shadow {
+        display: none;
+      }
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-shell">
+    <div class="header">
+      <div class="title">
+        <div class="title-icon">
+          <div class="title-icon-inner">✈</div>
+        </div>
+        <div>
+          <div class="title-text-main">飞机躲避炮弹</div>
+          <div class="title-text-sub">ARCADE · BULLET DODGING</div>
+        </div>
+      </div>
+      <div class="badge-row">
+        <div class="badge badge-keys">
+          <span class="badge-keycaps">
+            <span class="keycap">←</span>
+            <span class="keycap">→</span>
+            <span class="keycap">↑</span>
+            <span class="keycap">↓</span>
+          </span>
+          <span>或 WASD 移动</span>
+        </div>
+        <div class="badge">
+          <span class="badge-dot"></span>
+          <span>存活时间越久，难度越高</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-area">
+      <div class="top-bar">
+        <div class="score-box">
+          <span class="score-label">存活时间</span>
+          <span id="score" class="score-value">0.0</span>
+          <span style="font-size:11px;color:#9ca3af;margin-left:2px;">s</span>
+        </div>
+        <div class="right-hints">
+          <div class="hint-text">按 <strong>R</strong> 快速重新开始</div>
+          <button id="btnPause" class="btn-ghost" type="button">
+            <span>⏸</span>
+            <span>暂停</span>
+          </button>
+        </div>
+      </div>
+      <div class="score-shadow">DODGE</div>
+      <canvas id="gameCanvas" width="900" height="520"></canvas>
+
+      <div id="overlay" class="overlay">
+        <div class="overlay-inner">
+          <div id="overlayTitle" class="overlay-title">准备起飞</div>
+          <div id="overlaySub" class="overlay-sub">使用方向键或 WASD 移动，尽量长时间躲避飞来的炮弹。</div>
+          <div class="overlay-score">
+            <span class="overlay-score-label">当前成绩</span>
+            <span id="overlayScore" class="overlay-score-value">0.0</span>
+            <span style="font-size:11px;color:#bfdbfe;">s</span>
+          </div>
+          <div class="overlay-tips">
+            - 建议使用键盘操作，体验更顺滑<br />
+            - 随时间推移，会出现更多、更快的炮弹
+          </div>
+          <div class="overlay-btn-row">
+            <button id="btnStart" class="btn-primary" type="button">
+              <span>▶</span>
+              <span id="btnStartText">开始游戏</span>
+            </button>
+            <span class="btn-primary-sub">也可以按空格键开始/暂停</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span><strong>规则</strong>：被任意一枚炮弹击中即结束，自动记录本次存活时间。</span>
+      <span>适配桌面与移动浏览器</span>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+      const scoreEl = document.getElementById("score");
+      const overlay = document.getElementById("overlay");
+      const overlayTitle = document.getElementById("overlayTitle");
+      const overlaySub = document.getElementById("overlaySub");
+      const overlayScore = document.getElementById("overlayScore");
+      const btnStart = document.getElementById("btnStart");
+      const btnStartText = document.getElementById("btnStartText");
+      const btnPause = document.getElementById("btnPause");
+
+      const baseWidth = 900;
+      const baseHeight = 520;
+
+      const keys = {
+        left: false,
+        right: false,
+        up: false,
+        down: false,
+      };
+
+      const player = {
+        x: baseWidth * 0.15,
+        y: baseHeight * 0.5,
+        width: 36,
+        height: 26,
+        speed: 360,
+        tilt: 0,
+      };
+
+      let bullets = [];
+      let running = false;
+      let paused = false;
+      let gameOver = false;
+      let lastTime = performance.now();
+      let startTime = null;
+      let elapsed = 0;
+      let difficulty = 1;
+      let bulletSpawnTimer = 0;
+
+      function resizeCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        const ratio = window.devicePixelRatio || 1;
+        canvas.width = rect.width * ratio;
+        canvas.height = rect.height * ratio;
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      }
+
+      resizeCanvas();
+      window.addEventListener("resize", resizeCanvas);
+
+      function resetGame() {
+        bullets = [];
+        running = false;
+        paused = false;
+        gameOver = false;
+        lastTime = performance.now();
+        startTime = null;
+        elapsed = 0;
+        difficulty = 1;
+        bulletSpawnTimer = 0;
+        const h = baseHeight;
+        player.x = baseWidth * 0.15;
+        player.y = h * 0.5;
+        player.tilt = 0;
+        scoreEl.textContent = "0.0";
+        overlayScore.textContent = "0.0";
+        overlayTitle.textContent = "准备起飞";
+        overlaySub.textContent = "使用方向键或 WASD 移动，尽量长时间躲避飞来的炮弹。";
+        btnStartText.textContent = "开始游戏";
+        btnPause.innerHTML = "<span>⏸</span><span>暂停</span>";
+        showOverlay(true);
+      }
+
+      function showOverlay(visible) {
+        if (visible) {
+          overlay.classList.add("visible");
+        } else {
+          overlay.classList.remove("visible");
+        }
+      }
+
+      function spawnBullet(deltaMs) {
+        bulletSpawnTimer += deltaMs;
+        const baseInterval = 650;
+        const interval = Math.max(180, baseInterval - difficulty * 50);
+        if (bulletSpawnTimer < interval) return;
+        bulletSpawnTimer = 0;
+
+        const patternRoll = Math.random();
+        if (patternRoll < 0.25 && difficulty > 2) {
+          const baseY = Math.random() * (baseHeight - 100) + 50;
+          const count = 7;
+          const spacing = 26;
+          for (let i = 0; i < count; i++) {
+            bullets.push(createBulletFromRight(baseWidth + i * 10, baseY + (i - Math.floor(count / 2)) * spacing));
+          }
+        } else if (patternRoll < 0.5 && difficulty > 3) {
+          const y = Math.random() * (baseHeight - 80) + 40;
+          for (let i = 0; i < 4; i++) {
+            bullets.push(createBulletFromRight(baseWidth + i * 18, y));
+          }
+        } else if (patternRoll < 0.75) {
+          const y = Math.random() * (baseHeight - 60) + 30;
+          bullets.push(createBulletFromRight(baseWidth + 10, y));
+        } else {
+          const x = Math.random() * (baseWidth * 0.7) + baseWidth * 0.2;
+          bullets.push(createBulletFromTop(x));
+        }
+      }
+
+      function createBulletFromRight(x, y) {
+        const speedBase = 240 + difficulty * 40;
+        const speed = speedBase + Math.random() * 80;
+        const sizeBase = 16;
+        const size = sizeBase + Math.random() * 10;
+        const wobble = (Math.random() - 0.5) * 0.8;
+        return {
+          x,
+          y: y || Math.random() * (baseHeight - 60) + 30,
+          vx: -speed,
+          vy: wobble * 50,
+          width: size * 1.6,
+          height: size,
+          life: 0,
+          type: "right",
+        };
+      }
+
+      function createBulletFromTop(x) {
+        const speedBase = 210 + difficulty * 30;
+        const speed = speedBase + Math.random() * 60;
+        const size = 18 + Math.random() * 8;
+        return {
+          x,
+          y: -30,
+          vx: (Math.random() - 0.5) * 40,
+          vy: speed,
+          width: size * 0.9,
+          height: size * 1.7,
+          life: 0,
+          type: "top",
+        };
+      }
+
+      function update(delta) {
+        const dt = delta / 1000;
+        const px = player;
+        let moveX = 0;
+        let moveY = 0;
+
+        if (keys.left) moveX -= 1;
+        if (keys.right) moveX += 1;
+        if (keys.up) moveY -= 1;
+        if (keys.down) moveY += 1;
+
+        if (moveX !== 0 && moveY !== 0) {
+          const inv = 1 / Math.sqrt(2);
+          moveX *= inv;
+          moveY *= inv;
+        }
+
+        px.x += moveX * px.speed * dt;
+        px.y += moveY * px.speed * dt;
+        const margin = 8;
+        px.x = Math.max(margin, Math.min(baseWidth - px.width - margin, px.x));
+        px.y = Math.max(margin, Math.min(baseHeight - px.height - margin, px.y));
+
+        const targetTilt = moveX * -0.5;
+        px.tilt += (targetTilt - px.tilt) * Math.min(1, dt * 9);
+
+        spawnBullet(delta);
+        bullets = bullets.filter((b) => {
+          b.life += dt;
+          b.x += b.vx * dt;
+          b.y += b.vy * dt;
+          if (b.type === "right") {
+            b.vy *= 0.985;
+          }
+          if (b.y < -80 || b.y > baseHeight + 80 || b.x < -120 || b.x > baseWidth + 120) {
+            return false;
+          }
+          return true;
+        });
+
+        for (const b of bullets) {
+          if (rectIntersect(px.x, px.y, px.width, px.height, b.x, b.y, b.width, b.height)) {
+            handleGameOver();
+            break;
+          }
+        }
+
+        if (!gameOver && startTime != null) {
+          elapsed = (performance.now() - startTime) / 1000;
+          scoreEl.textContent = elapsed.toFixed(1);
+          difficulty = 1 + Math.min(5.5, elapsed / 8);
+        }
+      }
+
+      function rectIntersect(x1, y1, w1, h1, x2, y2, w2, h2) {
+        return x1 < x2 + w2 && x1 + w1 > x2 && y1 < y2 + h2 && y1 + h1 > y2;
+      }
+
+      function draw() {
+        const w = baseWidth;
+        const h = baseHeight;
+        ctx.clearRect(0, 0, w, h);
+
+        drawBackgroundStars();
+        drawPlayer();
+        drawBullets();
+      }
+
+      function drawBackgroundStars() {
+        const now = performance.now() * 0.001;
+        const w = baseWidth;
+        const h = baseHeight;
+        ctx.save();
+        ctx.globalAlpha = 0.55;
+        ctx.fillStyle = "#020617";
+        ctx.fillRect(0, 0, w, h);
+        const starCount = 64;
+        for (let i = 0; i < starCount; i++) {
+          const seed = i * 9973.123;
+          const sx = ((Math.sin(seed) + 1) / 2) * w;
+          const syBase = ((Math.cos(seed * 1.3) + 1) / 2) * h;
+          const speed = 30 + ((seed % 1) + 1) * 40;
+          const sy = (syBase + (now * speed)) % h;
+          const r = 0.7 + ((seed * 1.7) % 1) * 1.4;
+          const twinkle = 0.5 + 0.5 * Math.sin(now * 3 + seed);
+          ctx.globalAlpha = 0.25 + 0.5 * twinkle;
+          ctx.beginPath();
+          ctx.arc(sx, sy, r, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(148, 163, 184, 0.85)";
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      function drawPlayer() {
+        const p = player;
+        const centerX = p.x + p.width * 0.5;
+        const centerY = p.y + p.height * 0.5;
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(p.tilt);
+        ctx.translate(-centerX, -centerY);
+
+        const hullX = p.x;
+        const hullY = p.y;
+        const hullW = p.width;
+        const hullH = p.height;
+
+        const metalGradient = ctx.createLinearGradient(hullX, hullY, hullX, hullY + hullH);
+        metalGradient.addColorStop(0, "#e5e7eb");
+        metalGradient.addColorStop(0.25, "#9ca3af");
+        metalGradient.addColorStop(0.55, "#4b5563");
+        metalGradient.addColorStop(0.9, "#111827");
+
+        ctx.beginPath();
+        ctx.moveTo(hullX + hullW * 0.05, hullY + hullH * 0.5);
+        ctx.lineTo(hullX + hullW * 0.3, hullY + hullH * 0.12);
+        ctx.lineTo(hullX + hullW * 0.82, hullY + hullH * 0.12);
+        ctx.lineTo(hullX + hullW * 0.98, hullY + hullH * 0.5);
+        ctx.lineTo(hullX + hullW * 0.82, hullY + hullH * 0.88);
+        ctx.lineTo(hullX + hullW * 0.3, hullY + hullH * 0.88);
+        ctx.closePath();
+        ctx.fillStyle = metalGradient;
+        ctx.fill();
+
+        ctx.strokeStyle = "rgba(15, 23, 42, 0.9)";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        const wingGradient = ctx.createLinearGradient(hullX, hullY, hullX, hullY + hullH);
+        wingGradient.addColorStop(0, "rgba(148, 163, 184, 0.9)");
+        wingGradient.addColorStop(1, "rgba(31, 41, 55, 1)");
+
+        ctx.beginPath();
+        ctx.moveTo(hullX + hullW * 0.32, hullY + hullH * 0.45);
+        ctx.lineTo(hullX + hullW * 0.1, hullY + hullH * 0.18);
+        ctx.lineTo(hullX + hullW * 0.48, hullY + hullH * 0.32);
+        ctx.closePath();
+        ctx.moveTo(hullX + hullW * 0.32, hullY + hullH * 0.55);
+        ctx.lineTo(hullX + hullW * 0.1, hullY + hullH * 0.82);
+        ctx.lineTo(hullX + hullW * 0.48, hullY + hullH * 0.68);
+        ctx.closePath();
+        ctx.fillStyle = wingGradient;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(hullX + hullW * 0.65, hullY + hullH * 0.45);
+        ctx.lineTo(hullX + hullW * 0.55, hullY + hullH * 0.2);
+        ctx.lineTo(hullX + hullW * 0.7, hullY + hullH * 0.28);
+        ctx.closePath();
+        ctx.moveTo(hullX + hullW * 0.65, hullY + hullH * 0.55);
+        ctx.lineTo(hullX + hullW * 0.55, hullY + hullH * 0.8);
+        ctx.lineTo(hullX + hullW * 0.7, hullY + hullH * 0.72);
+        ctx.closePath();
+        ctx.fillStyle = "rgba(15, 23, 42, 0.95)";
+        ctx.fill();
+
+        const cockpitGradient = ctx.createLinearGradient(
+          hullX + hullW * 0.25,
+          hullY + hullH * 0.15,
+          hullX + hullW * 0.7,
+          hullY + hullH * 0.85
+        );
+        cockpitGradient.addColorStop(0, "rgba(191, 219, 254, 0.95)");
+        cockpitGradient.addColorStop(0.35, "rgba(59, 130, 246, 0.95)");
+        cockpitGradient.addColorStop(0.8, "rgba(15, 23, 42, 0.98)");
+
+        ctx.beginPath();
+        ctx.roundRect(
+          hullX + hullW * 0.32,
+          hullY + hullH * 0.26,
+          hullW * 0.34,
+          hullH * 0.48,
+          hullH * 0.22
+        );
+        ctx.fillStyle = cockpitGradient;
+        ctx.fill();
+
+        ctx.strokeStyle = "rgba(15, 23, 42, 0.85)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(hullX + hullW * 0.4, hullY + hullH * 0.32);
+        ctx.lineTo(hullX + hullW * 0.6, hullY + hullH * 0.68);
+        ctx.moveTo(hullX + hullW * 0.4, hullY + hullH * 0.68);
+        ctx.lineTo(hullX + hullW * 0.6, hullY + hullH * 0.32);
+        ctx.strokeStyle = "rgba(15, 23, 42, 0.3)";
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+
+        const noseGradient = ctx.createLinearGradient(
+          hullX + hullW * 0.75,
+          hullY + hullH * 0.3,
+          hullX + hullW,
+          hullY + hullH * 0.7
+        );
+        noseGradient.addColorStop(0, "#e5e7eb");
+        noseGradient.addColorStop(0.5, "#9ca3af");
+        noseGradient.addColorStop(1, "#020617");
+        ctx.beginPath();
+        ctx.moveTo(hullX + hullW * 0.8, hullY + hullH * 0.3);
+        ctx.quadraticCurveTo(
+          hullX + hullW * 1.05,
+          hullY + hullH * 0.5,
+          hullX + hullW * 0.8,
+          hullY + hullH * 0.7
+        );
+        ctx.lineTo(hullX + hullW * 0.78, hullY + hullH * 0.6);
+        ctx.quadraticCurveTo(
+          hullX + hullW * 0.92,
+          hullY + hullH * 0.5,
+          hullX + hullW * 0.78,
+          hullY + hullH * 0.4
+        );
+        ctx.closePath();
+        ctx.fillStyle = noseGradient;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(hullX + hullW * 0.85, hullY + hullH * 0.5, hullH * 0.08, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(252, 211, 77, 0.9)";
+        ctx.fill();
+
+        const engineGradient = ctx.createLinearGradient(
+          hullX - hullW * 0.25,
+          hullY + hullH * 0.3,
+          hullX + hullW * 0.1,
+          hullY + hullH * 0.7
+        );
+        engineGradient.addColorStop(0, "rgba(15, 23, 42, 0.9)");
+        engineGradient.addColorStop(1, "rgba(75, 85, 99, 1)");
+        ctx.beginPath();
+        ctx.roundRect(
+          hullX + hullW * 0.02,
+          hullY + hullH * 0.3,
+          hullW * 0.18,
+          hullH * 0.4,
+          hullH * 0.2
+        );
+        ctx.fillStyle = engineGradient;
+        ctx.fill();
+
+        const flameGradient = ctx.createLinearGradient(
+          hullX - hullW * 0.5,
+          hullY + hullH * 0.5,
+          hullX + hullW * 0.05,
+          hullY + hullH * 0.5
+        );
+        const flameIntensity = running && !paused && !gameOver ? 1 : 0.4;
+        flameGradient.addColorStop(0, `rgba(253, 224, 71, ${0.05 * flameIntensity})`);
+        flameGradient.addColorStop(0.2, `rgba(251, 191, 36, ${0.35 * flameIntensity})`);
+        flameGradient.addColorStop(0.6, `rgba(249, 115, 22, ${0.9 * flameIntensity})`);
+        flameGradient.addColorStop(1, `rgba(127, 29, 29, ${0.0 * flameIntensity})`);
+
+        ctx.beginPath();
+        const flicker = (Math.sin(performance.now() * 0.06) + 1) * 0.5;
+        const baseLen = hullW * (0.45 + 0.2 * flicker);
+        ctx.moveTo(hullX - baseLen, hullY + hullH * 0.5);
+        ctx.quadraticCurveTo(
+          hullX - baseLen * 0.35,
+          hullY + hullH * (0.2 - 0.1 * flicker),
+          hullX + hullW * 0.02,
+          hullY + hullH * 0.34
+        );
+        ctx.lineTo(hullX + hullW * 0.02, hullY + hullH * 0.66);
+        ctx.quadraticCurveTo(
+          hullX - baseLen * 0.35,
+          hullY + hullH * (0.8 + 0.1 * flicker),
+          hullX - baseLen,
+          hullY + hullH * 0.5
+        );
+        ctx.closePath();
+        ctx.fillStyle = flameGradient;
+        ctx.fill();
+
+        ctx.globalCompositeOperation = "screen";
+        ctx.beginPath();
+        ctx.ellipse(
+          hullX + hullW * 0.5,
+          hullY + hullH * 0.35,
+          hullW * 0.25,
+          hullH * 0.2,
+          0,
+          0,
+          Math.PI * 2
+        );
+        ctx.fillStyle = "rgba(148, 163, 184, 0.35)";
+        ctx.fill();
+        ctx.globalCompositeOperation = "source-over";
+
+        ctx.restore();
+      }
+
+      function drawBullets() {
+        for (const b of bullets) {
+          const cx = b.x + b.width * 0.5;
+          const cy = b.y + b.height * 0.5;
+          const angle = Math.atan2(b.vy, b.vx);
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate(angle);
+          ctx.translate(-cx, -cy);
+
+          if (b.type === "right") {
+            const bodyGradient = ctx.createLinearGradient(b.x, b.y, b.x + b.width, b.y + b.height);
+            bodyGradient.addColorStop(0, "#f9fafb");
+            bodyGradient.addColorStop(0.35, "#d1d5db");
+            bodyGradient.addColorStop(0.75, "#4b5563");
+            bodyGradient.addColorStop(1, "#020617");
+
+            ctx.beginPath();
+            ctx.roundRect(
+              b.x + b.width * 0.1,
+              b.y + b.height * 0.15,
+              b.width * 0.8,
+              b.height * 0.7,
+              Math.min(b.width, b.height) * 0.45
+            );
+            ctx.fillStyle = bodyGradient;
+            ctx.fill();
+
+            ctx.strokeStyle = "rgba(15, 23, 42, 0.9)";
+            ctx.lineWidth = 1.3;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(b.x + b.width * 0.1, b.y + b.height * 0.15);
+            ctx.lineTo(b.x + b.width * 0.1, b.y + b.height * 0.85);
+            ctx.strokeStyle = "rgba(15, 23, 42, 0.4)";
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(b.x + b.width * 0.9, b.y + b.height * 0.15);
+            ctx.lineTo(b.x + b.width * 0.9, b.y + b.height * 0.5);
+            ctx.lineTo(b.x + b.width * 1.08, b.y + b.height * 0.5);
+            ctx.closePath();
+            ctx.fillStyle = "#9ca3af";
+            ctx.fill();
+
+            const tailX = b.x + b.width * 0.05;
+            const tailY = b.y + b.height * 0.5;
+            const tailLen = Math.max(b.width, b.height) * (1.2 + Math.min(0.8, b.life * 2));
+            const flameGrad = ctx.createLinearGradient(
+              tailX - tailLen,
+              tailY,
+              tailX,
+              tailY
+            );
+            flameGrad.addColorStop(0, "rgba(56, 189, 248, 0)");
+            flameGrad.addColorStop(0.4, "rgba(56, 189, 248, 0.2)");
+            flameGrad.addColorStop(0.75, "rgba(251, 191, 36, 0.75)");
+            flameGrad.addColorStop(1, "rgba(239, 68, 68, 0.98)");
+
+            ctx.beginPath();
+            ctx.moveTo(tailX - tailLen, tailY);
+            ctx.quadraticCurveTo(
+              tailX - tailLen * 0.4,
+              tailY - b.height * 0.8,
+              tailX,
+              tailY - b.height * 0.2
+            );
+            ctx.lineTo(tailX, tailY + b.height * 0.2);
+            ctx.quadraticCurveTo(
+              tailX - tailLen * 0.4,
+              tailY + b.height * 0.8,
+              tailX - tailLen,
+              tailY
+            );
+            ctx.closePath();
+            ctx.fillStyle = flameGrad;
+            ctx.globalCompositeOperation = "lighter";
+            ctx.fill();
+            ctx.globalCompositeOperation = "source-over";
+          } else {
+            const bombGradient = ctx.createLinearGradient(b.x, b.y, b.x, b.y + b.height);
+            bombGradient.addColorStop(0, "#e5e7eb");
+            bombGradient.addColorStop(0.35, "#9ca3af");
+            bombGradient.addColorStop(1, "#111827");
+
+            ctx.beginPath();
+            ctx.roundRect(
+              b.x + b.width * 0.05,
+              b.y,
+              b.width * 0.9,
+              b.height * 0.8,
+              Math.min(b.width, b.height) * 0.45
+            );
+            ctx.fillStyle = bombGradient;
+            ctx.fill();
+
+            ctx.strokeStyle = "rgba(15, 23, 42, 0.9)";
+            ctx.lineWidth = 1.3;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(b.x + b.width * 0.3, b.y + b.height * 0.8);
+            ctx.lineTo(b.x + b.width * 0.15, b.y + b.height * 1.05);
+            ctx.lineTo(b.x + b.width * 0.45, b.y + b.height * 0.92);
+            ctx.closePath();
+            ctx.moveTo(b.x + b.width * 0.7, b.y + b.height * 0.8);
+            ctx.lineTo(b.x + b.width * 0.55, b.y + b.height * 1.05);
+            ctx.lineTo(b.x + b.width * 0.85, b.y + b.height * 0.92);
+            ctx.closePath();
+            ctx.fillStyle = "rgba(31, 41, 55, 1)";
+            ctx.fill();
+
+            const trailLen = Math.max(b.height * 1.6, 20);
+            const trailGrad = ctx.createLinearGradient(
+              cx,
+              cy - trailLen,
+              cx,
+              cy + trailLen * 0.3
+            );
+            trailGrad.addColorStop(0, "rgba(148, 163, 184, 0)");
+            trailGrad.addColorStop(0.5, "rgba(148, 163, 184, 0.25)");
+            trailGrad.addColorStop(1, "rgba(15, 23, 42, 0.0)");
+            ctx.globalCompositeOperation = "lighter";
+            ctx.beginPath();
+            ctx.moveTo(cx - b.width * 0.2, cy);
+            ctx.lineTo(cx + b.width * 0.2, cy);
+            ctx.lineTo(cx + b.width * 0.35, cy - trailLen);
+            ctx.lineTo(cx - b.width * 0.35, cy - trailLen);
+            ctx.closePath();
+            ctx.fillStyle = trailGrad;
+            ctx.fill();
+            ctx.globalCompositeOperation = "source-over";
+          }
+
+          const glowAlpha = 0.45 + Math.min(0.35, b.life * 0.7);
+          const glow = ctx.createRadialGradient(
+            cx,
+            cy,
+            Math.min(b.width, b.height) * 0.2,
+            cx,
+            cy,
+            Math.max(b.width, b.height) * 1.75
+          );
+          const hueColor = b.type === "right" ? "56, 189, 248" : "248, 250, 252";
+          glow.addColorStop(0, `rgba(${hueColor}, ${glowAlpha})`);
+          glow.addColorStop(1, "rgba(15, 23, 42, 0)");
+
+          ctx.globalCompositeOperation = "lighter";
+          ctx.beginPath();
+          ctx.arc(cx, cy, Math.max(b.width, b.height) * 1.7, 0, Math.PI * 2);
+          ctx.fillStyle = glow;
+          ctx.fill();
+          ctx.globalCompositeOperation = "source-over";
+
+          ctx.restore();
+        }
+      }
+
+      function loop(now) {
+        const delta = now - lastTime;
+        lastTime = now;
+
+        if (running && !paused && !gameOver) {
+          update(delta);
+        }
+        draw();
+        requestAnimationFrame(loop);
+      }
+
+      function handleGameOver() {
+        if (gameOver) return;
+        gameOver = true;
+        running = false;
+        paused = false;
+
+        const finalScore = elapsed;
+        overlayScore.textContent = finalScore.toFixed(1);
+        scoreEl.textContent = finalScore.toFixed(1);
+
+        let title = "飞机被击中！";
+        let sub = "再试一次，看能不能坚持更久一点。";
+        if (finalScore >= 40) {
+          title = "不可思议的飞行员！";
+          sub = "难度拉满也依然从容不迫。佩服。";
+        } else if (finalScore >= 25) {
+          title = "王牌飞行员！";
+          sub = "你已经可以在炮火中自由穿梭了。";
+        } else if (finalScore >= 15) {
+          title = "优秀飞行员！";
+          sub = "稍加练习，你就能挑战更高的记录。";
+        } else if (finalScore >= 8) {
+          title = "不错的开始！";
+          sub = "适应节奏后，你会发现还能再快一点。";
+        }
+
+        overlayTitle.textContent = title;
+        overlaySub.textContent = sub;
+        btnStartText.textContent = "再来一局";
+        showOverlay(true);
+      }
+
+      function startGame() {
+        if (!running) {
+          bullets = [];
+          gameOver = false;
+          paused = false;
+          lastTime = performance.now();
+          startTime = performance.now();
+          elapsed = 0;
+          difficulty = 1;
+          bulletSpawnTimer = 0;
+          scoreEl.textContent = "0.0";
+          running = true;
+          btnPause.innerHTML = "<span>⏸</span><span>暂停</span>";
+          showOverlay(false);
+        } else if (gameOver) {
+          resetGame();
+          requestAnimationFrame(() => startGame());
+        }
+      }
+
+      function togglePause() {
+        if (!running || gameOver) return;
+        paused = !paused;
+        if (paused) {
+          overlayTitle.textContent = "已暂停";
+          overlaySub.textContent = "按空格键或点击继续游戏。";
+          overlayScore.textContent = elapsed.toFixed(1);
+          btnStartText.textContent = "继续游戏";
+          btnPause.innerHTML = "<span>▶</span><span>继续</span>";
+          showOverlay(true);
+        } else {
+          btnPause.innerHTML = "<span>⏸</span><span>暂停</span>";
+          showOverlay(false);
+        }
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", " "].includes(e.key)) {
+          e.preventDefault();
+        }
+        if (e.repeat) return;
+        switch (e.key) {
+          case "ArrowLeft":
+          case "a":
+          case "A":
+            keys.left = true;
+            break;
+          case "ArrowRight":
+          case "d":
+          case "D":
+            keys.right = true;
+            break;
+          case "ArrowUp":
+          case "w":
+          case "W":
+            keys.up = true;
+            break;
+          case "ArrowDown":
+          case "s":
+          case "S":
+            keys.down = true;
+            break;
+          case " ":
+            if (!running || gameOver) {
+              startGame();
+            } else {
+              togglePause();
+            }
+            break;
+          case "r":
+          case "R":
+            resetGame();
+            break;
+        }
+      });
+
+      document.addEventListener("keyup", (e) => {
+        switch (e.key) {
+          case "ArrowLeft":
+          case "a":
+          case "A":
+            keys.left = false;
+            break;
+          case "ArrowRight":
+          case "d":
+          case "D":
+            keys.right = false;
+            break;
+          case "ArrowUp":
+          case "w":
+          case "W":
+            keys.up = false;
+            break;
+          case "ArrowDown":
+          case "s":
+          case "S":
+            keys.down = false;
+            break;
+        }
+      });
+
+      let pointerActive = false;
+      let pointerTargetX = player.x;
+      let pointerTargetY = player.y;
+
+      function pointerToCanvas(e) {
+        const rect = canvas.getBoundingClientRect();
+        const x = ((e.clientX || (e.touches && e.touches[0].clientX)) - rect.left) * (baseWidth / rect.width);
+        const y = ((e.clientY || (e.touches && e.touches[0].clientY)) - rect.top) * (baseHeight / rect.height);
+        return { x, y };
+      }
+
+      canvas.addEventListener("pointerdown", (e) => {
+        pointerActive = true;
+        const pos = pointerToCanvas(e);
+        pointerTargetX = pos.x;
+        pointerTargetY = pos.y;
+      });
+
+      canvas.addEventListener("pointermove", (e) => {
+        if (!pointerActive) return;
+        const pos = pointerToCanvas(e);
+        pointerTargetX = pos.x;
+        pointerTargetY = pos.y;
+      });
+
+      canvas.addEventListener("pointerup", () => {
+        pointerActive = false;
+      });
+
+      canvas.addEventListener("pointerleave", () => {
+        pointerActive = false;
+      });
+
+      function updatePointerFollow(delta) {
+        if (!pointerActive) return;
+        const dt = delta / 1000;
+        const px = player;
+        const targetX = pointerTargetX - px.width * 0.5;
+        const targetY = pointerTargetY - px.height * 0.5;
+        const smoothing = Math.min(1, dt * 7);
+        px.x += (targetX - px.x) * smoothing;
+        px.y += (targetY - px.y) * smoothing;
+        const margin = 8;
+        px.x = Math.max(margin, Math.min(baseWidth - px.width - margin, px.x));
+        px.y = Math.max(margin, Math.min(baseHeight - px.height - margin, px.y));
+      }
+
+      const originalUpdate = update;
+      update = function patchedUpdate(delta) {
+        originalUpdate(delta);
+        updatePointerFollow(delta);
+      };
+
+      btnStart.addEventListener("click", () => {
+        if (!running || gameOver) {
+          startGame();
+        } else if (paused) {
+          togglePause();
+        }
+      });
+
+      btnPause.addEventListener("click", () => {
+        togglePause();
+      });
+
+      showOverlay(true);
+      requestAnimationFrame(loop);
+      canvas.focus && canvas.focus();
+    })();
+  </script>
+</body>
+</html>
+
