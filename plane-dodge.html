@@ -242,6 +242,9 @@
       display: block;
       width: 100%;
       height: auto;
+      touch-action: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
       background:
         radial-gradient(circle at 20% 10%, rgba(59, 130, 246, 0.18), transparent 55%),
         radial-gradient(circle at 70% 0%, rgba(236, 72, 153, 0.16), transparent 55%),
@@ -541,9 +544,9 @@
       const player = {
         x: baseWidth * 0.15,
         y: baseHeight * 0.5,
-        width: 36,
-        height: 26,
-        speed: 360,
+        width: 52,
+        height: 36,
+        speed: 380,
         tilt: 0,
       };
 
@@ -606,8 +609,8 @@
 
       function spawnBullet(deltaMs) {
         bulletSpawnTimer += deltaMs;
-        const baseInterval = 650;
-        const interval = Math.max(180, baseInterval - difficulty * 50);
+        const baseInterval = 520;
+        const interval = Math.max(140, baseInterval - difficulty * 65);
         if (bulletSpawnTimer < interval) return;
         bulletSpawnTimer = 0;
 
@@ -634,10 +637,10 @@
       }
 
       function createBulletFromRight(x, y) {
-        const speedBase = 240 + difficulty * 40;
-        const speed = speedBase + Math.random() * 80;
-        const sizeBase = 16;
-        const size = sizeBase + Math.random() * 10;
+        const speedBase = 260 + difficulty * 55;
+        const speed = speedBase + Math.random() * 110;
+        const sizeBase = 22;
+        const size = sizeBase + Math.random() * 12;
         const wobble = (Math.random() - 0.5) * 0.8;
         return {
           x,
@@ -652,9 +655,9 @@
       }
 
       function createBulletFromTop(x) {
-        const speedBase = 210 + difficulty * 30;
-        const speed = speedBase + Math.random() * 60;
-        const size = 18 + Math.random() * 8;
+        const speedBase = 240 + difficulty * 40;
+        const speed = speedBase + Math.random() * 70;
+        const size = 24 + Math.random() * 10;
         return {
           x,
           y: -30,
@@ -717,7 +720,7 @@
         if (!gameOver && startTime != null) {
           elapsed = (performance.now() - startTime) / 1000;
           scoreEl.textContent = elapsed.toFixed(1);
-          difficulty = 1 + Math.min(5.5, elapsed / 8);
+          difficulty = 1 + Math.min(7, elapsed / 5);
         }
       }
 
@@ -1276,59 +1279,75 @@
         return { x, y };
       }
 
-      canvas.addEventListener("pointerdown", (e) => {
+      function startPointerAt(e) {
         pointerActive = true;
         const pos = pointerToCanvas(e);
         pointerTargetX = pos.x;
         pointerTargetY = pos.y;
-      });
+      }
 
-      canvas.addEventListener("pointermove", (e) => {
+      function movePointerTo(e) {
         if (!pointerActive) return;
         const pos = pointerToCanvas(e);
         pointerTargetX = pos.x;
         pointerTargetY = pos.y;
+      }
+
+      function endPointer() {
+        pointerActive = false;
+      }
+
+      canvas.addEventListener("pointerdown", (e) => {
+        startPointerAt(e);
+      });
+
+      canvas.addEventListener("pointermove", (e) => {
+        movePointerTo(e);
       });
 
       canvas.addEventListener("pointerup", () => {
-        pointerActive = false;
+        endPointer();
       });
 
       canvas.addEventListener("pointerleave", () => {
-        pointerActive = false;
+        endPointer();
       });
 
-      canvas.addEventListener(
-        "touchstart",
-        (e) => {
-          e.preventDefault();
-          pointerActive = true;
-          const pos = pointerToCanvas(e);
-          pointerTargetX = pos.x;
-          pointerTargetY = pos.y;
-        },
-        { passive: false }
-      );
+      function handleTouchStart(e) {
+        if (!e.touches || e.touches.length === 0) return;
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        if (
+          touch.clientX < rect.left ||
+          touch.clientX > rect.right ||
+          touch.clientY < rect.top ||
+          touch.clientY > rect.bottom
+        ) {
+          return;
+        }
+        e.preventDefault();
+        startPointerAt(e);
+      }
 
-      canvas.addEventListener(
-        "touchmove",
-        (e) => {
-          e.preventDefault();
-          if (!pointerActive) return;
-          const pos = pointerToCanvas(e);
-          pointerTargetX = pos.x;
-          pointerTargetY = pos.y;
-        },
-        { passive: false }
-      );
+      function handleTouchMove(e) {
+        if (!pointerActive) return;
+        e.preventDefault();
+        movePointerTo(e);
+      }
 
-      canvas.addEventListener("touchend", () => {
-        pointerActive = false;
-      });
+      function handleTouchEnd() {
+        endPointer();
+      }
 
-      canvas.addEventListener("touchcancel", () => {
-        pointerActive = false;
-      });
+      canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
+      canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
+      canvas.addEventListener("touchend", handleTouchEnd, { passive: false });
+      canvas.addEventListener("touchcancel", handleTouchEnd, { passive: false });
+
+      document.addEventListener("touchstart", handleTouchStart, { passive: false });
+      document.addEventListener("touchmove", handleTouchMove, { passive: false });
+      document.addEventListener("touchend", handleTouchEnd, { passive: false });
+      document.addEventListener("touchcancel", handleTouchEnd, { passive: false });
 
       function updatePointerFollow(delta) {
         if (!pointerActive) return;
