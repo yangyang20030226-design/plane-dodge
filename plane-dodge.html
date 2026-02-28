@@ -1298,6 +1298,38 @@
         pointerActive = false;
       });
 
+      canvas.addEventListener(
+        "touchstart",
+        (e) => {
+          e.preventDefault();
+          pointerActive = true;
+          const pos = pointerToCanvas(e);
+          pointerTargetX = pos.x;
+          pointerTargetY = pos.y;
+        },
+        { passive: false }
+      );
+
+      canvas.addEventListener(
+        "touchmove",
+        (e) => {
+          e.preventDefault();
+          if (!pointerActive) return;
+          const pos = pointerToCanvas(e);
+          pointerTargetX = pos.x;
+          pointerTargetY = pos.y;
+        },
+        { passive: false }
+      );
+
+      canvas.addEventListener("touchend", () => {
+        pointerActive = false;
+      });
+
+      canvas.addEventListener("touchcancel", () => {
+        pointerActive = false;
+      });
+
       function updatePointerFollow(delta) {
         if (!pointerActive) return;
         const px = player;
