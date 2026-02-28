@@ -1344,11 +1344,6 @@
       canvas.addEventListener("touchend", handleTouchEnd, { passive: false });
       canvas.addEventListener("touchcancel", handleTouchEnd, { passive: false });
 
-      document.addEventListener("touchstart", handleTouchStart, { passive: false });
-      document.addEventListener("touchmove", handleTouchMove, { passive: false });
-      document.addEventListener("touchend", handleTouchEnd, { passive: false });
-      document.addEventListener("touchcancel", handleTouchEnd, { passive: false });
-
       function updatePointerFollow(delta) {
         if (!pointerActive) return;
         const px = player;
