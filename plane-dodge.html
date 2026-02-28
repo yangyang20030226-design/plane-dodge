@@ -1300,13 +1300,11 @@
 
       function updatePointerFollow(delta) {
         if (!pointerActive) return;
-        const dt = delta / 1000;
         const px = player;
         const targetX = pointerTargetX - px.width * 0.5;
         const targetY = pointerTargetY - px.height * 0.5;
-        const smoothing = Math.min(1, dt * 7);
-        px.x += (targetX - px.x) * smoothing;
-        px.y += (targetY - px.y) * smoothing;
+        px.x = targetX;
+        px.y = targetY;
         const margin = 8;
         px.x = Math.max(margin, Math.min(baseWidth - px.width - margin, px.x));
         px.y = Math.max(margin, Math.min(baseHeight - px.height - margin, px.y));
